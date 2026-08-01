@@ -3,38 +3,30 @@ package net.deadlydiamond98.way;
 import net.deadlydiamond98.way.common.command.WayServerCommands;
 import net.deadlydiamond98.way.common.events.WayRespawnEvent;
 import net.deadlydiamond98.way.common.events.WayTickingEvent;
-import net.deadlydiamond98.way.networking.WayForgeNetworking;
-import net.deadlydiamond98.way.platform.ForgePlatformHelper;
+import net.deadlydiamond98.way.networking.WayNeoForgeNetworking;
+import net.deadlydiamond98.way.platform.NeoForgePlatformHelper;
 import net.deadlydiamond98.way.util.mixin.IWayPlayer;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @Mod(Way.MOD_ID)
-public class WayForge {
-    public WayForge() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+public class WayNeoForge {
+
+    public WayNeoForge(IEventBus modEventBus) {
         Way.init();
-        ForgePlatformHelper.registerArgTypes(modEventBus);
-        modEventBus.addListener(this::commonSetup);
+        NeoForgePlatformHelper.registerArgTypes(modEventBus);
+        modEventBus.addListener(WayNeoForgeNetworking::register);
     }
 
-    public void commonSetup(FMLCommonSetupEvent event) {
-        WayForgeNetworking.register();
-    }
-
-    @Mod.EventBusSubscriber(modid = Way.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+    @EventBusSubscriber(modid = Way.MOD_ID)
     public static class TickEvents {
         @SubscribeEvent
-        public static void tickEvents(TickEvent.ServerTickEvent event) {
-            if (event.phase == TickEvent.Phase.END || event.side == LogicalSide.CLIENT) return;
+        public static void tickEvents(ServerTickEvent.Post event) {
             WayTickingEvent.tick(event.getServer());
         }
 

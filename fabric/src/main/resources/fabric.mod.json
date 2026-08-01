@@ -8,8 +8,9 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://fabricmc.net/",
-        "sources": "https://github.com/Deadlydiamond98/WhereAreYou-WAY"
+        "homepage": "https://github.com/Deadlydiamond98/WhereAreYou-WAY",
+        "sources": "https://github.com/Deadlydiamond98/WhereAreYou-WAY",
+        "issues": "https://github.com/Deadlydiamond98/WhereAreYou-WAY/issues"
     },
     "license": "${license}",
     "icon": "assets/way/icon.png",
@@ -27,13 +28,9 @@
         "way.fabric.mixins.json"
     ],
     "depends": {
-        "fabricloader": ">=0.14",
-        "fabric": "*",
-        "minecraft": "${minecraft_version}",
-        "java": ">=17"
-    },
-    "suggests": {
-        "another-mod": "*"
+        "fabricloader": ">=0.16",
+        "fabric-api": "*",
+        "minecraft": "~1.21.1",
+        "java": ">=21"
     }
 }
-  

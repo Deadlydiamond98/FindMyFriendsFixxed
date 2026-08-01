@@ -1,7 +1,7 @@
 package net.deadlydiamond98.way.mixin;
 
-import net.deadlydiamond98.way.Way;
 import net.deadlydiamond98.way.common.command.WayServerCommands;
+import net.deadlydiamond98.way.common.networking.UpdateNameplateRenderPayload;
 import net.deadlydiamond98.way.platform.Service;
 import net.deadlydiamond98.way.util.mixin.IWayPlayer;
 import net.minecraft.nbt.CompoundTag;
@@ -9,7 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,23 +22,38 @@ import java.util.List;
 @Mixin(Player.class)
 public class PlayerMixin implements IWayPlayer {
 
-    @Unique private boolean way$showPlayer = true;
-    @Unique private boolean way$bypassOpt = false;
-    @Unique private int way$color = 0xFFFFFF;
-    @Unique private boolean way$isClear = true;
-    @Unique private List<Component> way$players = new ArrayList<>();
-    @Unique private Integer way$focusedColor = null;
+    @Unique
+    private boolean way$showPlayer = true;
+    @Unique
+    private boolean way$bypassOpt = false;
+    @Unique
+    private int way$color = 0xFFFFFF;
+    @Unique
+    private boolean way$isClear = true;
+    @Unique
+    private List<Component> way$players = new ArrayList<>();
+    @Unique
+    private Integer way$focusedColor = null;
 
-    @Unique private boolean way$toggle = true;
-    @Unique private boolean way$hideIfVisible = false;
+    @Unique
+    private boolean way$toggle = true;
+    @Unique
+    private boolean way$hideIfVisible = false;
 
-    @Unique private boolean way$seeNames = true;
-    @Unique private boolean way$seeDist = true;
-    @Unique private boolean way$seeColors = true;
-    @Unique private boolean way$seeOutlines = false;
-    @Unique private boolean way$seeHead = true;
-    @Unique private boolean way$seeHeadOutline = true;
-    @Unique private boolean way$seeSelf = false;
+    @Unique
+    private boolean way$seeNames = true;
+    @Unique
+    private boolean way$seeDist = true;
+    @Unique
+    private boolean way$seeColors = true;
+    @Unique
+    private boolean way$seeOutlines = false;
+    @Unique
+    private boolean way$seeHead = true;
+    @Unique
+    private boolean way$seeHeadOutline = true;
+    @Unique
+    private boolean way$seeSelf = false;
 
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void way$attack(Entity entity, CallbackInfo ci) {
@@ -183,22 +197,7 @@ public class PlayerMixin implements IWayPlayer {
     public void way$updateRenderPreferences() {
         Player player = (Player) (Object) this;
         if (player instanceof ServerPlayer sender) {
-            Service.PLATFORM.sendS2CRenderingPacket(
-                    sender,
-                    this.way$toggle,
-                    this.way$seeNames,
-                    this.way$seeDist,
-                    this.way$seeColors,
-                    this.way$seeOutlines,
-                    this.way$seeHead,
-                    this.way$seeHeadOutline,
-                    WayServerCommands.COLOR_DISTANCE.getValue(sender),
-                    WayServerCommands.NAME_PAIN_FLASH.getValue(sender),
-                    WayServerCommands.NAME_PAIN_REDDER.getValue(sender),
-                    WayServerCommands.MIN_DIST.getValue(sender),
-                    WayServerCommands.MAX_DIST.getValue(sender),
-                    this.way$bypassOpt
-            );
+            Service.PLATFORM.sendToPlayer(sender, UpdateNameplateRenderPayload.of(sender));
         }
     }
 

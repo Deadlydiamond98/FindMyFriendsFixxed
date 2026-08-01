@@ -1,6 +1,5 @@
 package net.deadlydiamond98.way.client.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -8,8 +7,9 @@ import net.deadlydiamond98.way.Way;
 import net.deadlydiamond98.way.client.WayKeybindings;
 import net.deadlydiamond98.way.common.events.WayTickingEvent;
 import net.deadlydiamond98.way.util.ColorUtil;
-import net.deadlydiamond98.way.util.PlayerLocation;
 import net.deadlydiamond98.way.util.FaceRenderingUtil;
+import net.deadlydiamond98.way.util.PlayerLocation;
+import net.deadlydiamond98.way.util.WayEntityUtil;
 import net.deadlydiamond98.way.util.mixin.IGlowingWayPlayer;
 import net.deadlydiamond98.way.util.mixin.IWayPlayer;
 import net.minecraft.client.Camera;
@@ -19,6 +19,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
@@ -36,7 +37,7 @@ public class WayNameplateRenderer {
 
     // Future me here, what form of crack was I on?!?!?!? This is now cleaned up
 
-    private static final ResourceLocation FIX_RENDERING_THING = new ResourceLocation(Way.MOD_ID, "textures/plz_work.png");
+    private static final ResourceLocation FIX_RENDERING_THING = ResourceLocation.fromNamespaceAndPath(Way.MOD_ID, "textures/plz_work.png");
     private static final float[] UV = {0.125f, 0.25f};
     private static final int NAMETAG_RENDER_CUTTOFF = 100;
 
@@ -55,7 +56,7 @@ public class WayNameplateRenderer {
                 new ArrayList<>(WayTickingEvent.PLAYER_POS).forEach(playerData -> {
                     if (playerData.getEyePosition().distanceTo(user.getEyePosition(renderTick)) > NAMETAG_RENDER_CUTTOFF) {
                         Vec3 pos = playerData.getPosition().add(0, playerData.nametagY, 0);
-                        renderNameplate(poseStack, bufferSource, level, renderTick, wayPlayer, playerData, pos, null);
+                        renderNameplate(poseStack, bufferSource, renderTick, wayPlayer, playerData, pos, null);
 
                     } else {
                         level.players().forEach(player -> {
@@ -64,8 +65,8 @@ public class WayNameplateRenderer {
                             boolean isSame = playerData.name.getString().equals(player.getName().getString());
 
                             if (isSame && !thirdPerson && (!invis || wayPlayer.way$bypassOpt()) && player.distanceTo(user) <= NAMETAG_RENDER_CUTTOFF) {
-                                Vec3 pos = player.getPosition(renderTick).add(0, player.getNameTagOffsetY(), 0);
-                                renderNameplate(poseStack, bufferSource, level, renderTick, wayPlayer, playerData, pos, player);
+                                Vec3 pos = player.getPosition(renderTick).add(0, WayEntityUtil.nameTagOffsetY(player), 0);
+                                renderNameplate(poseStack, bufferSource, renderTick, wayPlayer, playerData, pos, player);
 
                                 if (((IWayPlayer) user).way$canSeeOutline()) {
                                     ((IGlowingWayPlayer) player).way$setOutlineColor(playerData.hex);
@@ -80,8 +81,8 @@ public class WayNameplateRenderer {
             }
         }
     }
-    
-    private static void renderNameplate(PoseStack poseStack, MultiBufferSource bufferSource, ClientLevel level, float renderTick, IWayPlayer viewer, PlayerLocation data, Vec3 pos, @Nullable Player player) {
+
+    private static void renderNameplate(PoseStack poseStack, MultiBufferSource bufferSource, float renderTick, IWayPlayer viewer, PlayerLocation data, Vec3 pos, @Nullable Player player) {
         if (data.isOptedIn || viewer.way$bypassOpt()) {
             poseStack.pushPose();
 
@@ -96,11 +97,11 @@ public class WayNameplateRenderer {
 
                 // This is to avoid an iris bug
                 if (Way.hasIris()) {
-                    renderText(poseStack, bufferSource, level, data.name, 0, 0, 0, data.nametagY, nameScale, getNameHex(data, viewer, distance, player));
+                    renderText(poseStack, bufferSource, data.name, 0, 0, 0, data.nametagY, nameScale, getNameHex(data, viewer, distance, player));
                     renderBackplate(poseStack, bufferSource, data.name, -10.5f, 0, nameScale);
                 } else {
                     renderBackplate(poseStack, bufferSource, data.name, -10.5f, 0, nameScale);
-                    renderText(poseStack, bufferSource, level, data.name, 0, 0, 0, data.nametagY, nameScale, getNameHex(data, viewer, distance, player));
+                    renderText(poseStack, bufferSource, data.name, 0, 0, 0, data.nametagY, nameScale, getNameHex(data, viewer, distance, player));
                 }
             }
 
@@ -110,11 +111,11 @@ public class WayNameplateRenderer {
 
                 // This is to avoid an iris bug
                 if (Way.hasIris()) {
-                    renderText(poseStack, bufferSource, level, dist, 0, 0, 0, data.nametagY + (viewer.way$canSeeName() ? -7.5f : 2), distScale, distHex);
+                    renderText(poseStack, bufferSource, dist, 0, 0, 0, data.nametagY + (viewer.way$canSeeName() ? -7.5f : 2), distScale, distHex);
                     renderBackplate(poseStack, bufferSource, dist, viewer.way$canSeeName() ? -2.75f : -12, 0, distScale);
                 } else {
                     renderBackplate(poseStack, bufferSource, dist, viewer.way$canSeeName() ? -2.75f : -12, 0, distScale);
-                    renderText(poseStack, bufferSource, level, dist, 0, 0, 0, data.nametagY + (viewer.way$canSeeName() ? -7.5f : 2), distScale, distHex);
+                    renderText(poseStack, bufferSource, dist, 0, 0, 0, data.nametagY + (viewer.way$canSeeName() ? -7.5f : 2), distScale, distHex);
                 }
             }
 
@@ -152,7 +153,7 @@ public class WayNameplateRenderer {
         return nameHex | 0xFF000000;
     }
 
-    private static void renderText(PoseStack poseStack, MultiBufferSource bufferSource, ClientLevel level, Component name, float x, float y, float z, float yOffset, float scale, int color) {
+    private static void renderText(PoseStack poseStack, MultiBufferSource bufferSource, Component name, float x, float y, float z, float yOffset, float scale, int color) {
         Minecraft client = Minecraft.getInstance();
         Camera camera = client.getEntityRenderDispatcher().camera;
         Font font = client.font;
@@ -164,7 +165,7 @@ public class WayNameplateRenderer {
         poseStack.translate(x, y, z);
         poseStack.scale(scale, scale, scale);
 
-        font.drawInBatch(name, (float)(-font.width(name) / 2), yOffset + 0.1f, color, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.SEE_THROUGH, 0, level.getMaxLightLevel());
+        font.drawInBatch(name, (float) (-font.width(name) / 2), yOffset + 0.1f, color, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.SEE_THROUGH, 0, LightTexture.FULL_BRIGHT);
 
         poseStack.popPose();
     }
@@ -199,7 +200,7 @@ public class WayNameplateRenderer {
 
     private static void renderThingInBackToFixLayering(PoseStack poseStack, MultiBufferSource bufferSource, float x, float y, float wh, float scale) {
         VertexConsumer vCon = bufferSource.getBuffer(RenderType.entityCutoutNoCull(FIX_RENDERING_THING));
-        renderBillboardingFace(poseStack, vCon, x , y, 0.002f, wh, wh, 0x03FFFFFF, scale);
+        renderBillboardingFace(poseStack, vCon, x, y, 0.002f, wh, wh, 0x03FFFFFF, scale);
     }
 
     private static void renderHeadOutline(PoseStack poseStack, MultiBufferSource bufferSource, int hex, float x, float y, float wh, float scale, IWayPlayer viewer) {
@@ -215,7 +216,7 @@ public class WayNameplateRenderer {
         if (connection != null) {
             PlayerInfo info = connection.getPlayerInfo(uuid);
             if (info != null) {
-                VertexConsumer vConSkin = bufferSource.getBuffer(RenderType.textSeeThrough(info.getSkinLocation()));
+                VertexConsumer vConSkin = bufferSource.getBuffer(RenderType.textSeeThrough(info.getSkin().texture()));
                 renderBillboardingFace(poseStack, vConSkin, x, y, 0, 1, 1, 255, 255, 255, 255, scale);
             }
         }
@@ -243,13 +244,13 @@ public class WayNameplateRenderer {
         return (int) Math.floor(currentDistance);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static void renderBillboardingFace(PoseStack poseStack, VertexConsumer vCon, float x, float y, float z, float width, float height, int hex, float scale) {
         FaceRenderingUtil.renderBillboardingFace(poseStack, vCon, x, y, z, UV[0], UV[1], UV[0], UV[1], width, height, hex, scale);
     }
 
     private static void renderBillboardingFace(PoseStack poseStack, VertexConsumer vCon, float x, float y, float z, float width, float height, int a, int r, int g, int b, float scale) {
-        FaceRenderingUtil.renderBillboardingFace(poseStack, vCon, x, y, z, UV[0], UV[1], UV[0], UV[1], width, height, new int[] {a, r, g, b}, scale);
+        FaceRenderingUtil.renderBillboardingFace(poseStack, vCon, x, y, z, UV[0], UV[1], UV[0], UV[1], width, height, new int[]{a, r, g, b}, scale);
     }
 }

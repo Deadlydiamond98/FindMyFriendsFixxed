@@ -1,6 +1,8 @@
 package net.deadlydiamond98.way.common.events;
 
 import net.deadlydiamond98.way.common.command.WayServerCommands;
+import net.deadlydiamond98.way.common.networking.ClearPlayersPayload;
+import net.deadlydiamond98.way.common.networking.UpdatePlayerPayload;
 import net.deadlydiamond98.way.platform.Service;
 import net.deadlydiamond98.way.util.PlayerLocation;
 import net.deadlydiamond98.way.util.mixin.IWayPlayer;
@@ -30,13 +32,13 @@ public class WayTickingEvent {
                     toRender.add(player);
                 }
             });
-            level.players().forEach(sender -> {
+            level.players().forEach((ServerPlayer sender) -> {
                 int rate = Math.max(1, WayServerCommands.PACKET_UPDATE_RATE.getValue(sender));
                 if (sender.tickCount % rate == 0) {
-                    Service.PLATFORM.sendS2CClearPacket(sender);
+                    Service.PLATFORM.sendToPlayer(sender, ClearPlayersPayload.INSTANCE);
                     for (Player player : toRender) {
                         if (canRenderNameplate(sender, player)) {
-                            Service.PLATFORM.sendS2CPlayerList(sender, player);
+                            Service.PLATFORM.sendToPlayer(sender, UpdatePlayerPayload.of(sender, player));
                         }
                     }
                 }

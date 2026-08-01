@@ -15,7 +15,8 @@ public class WayClientFabric implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(WayKeybindings.TOGGLE_NAMEPLATE);
         WayFabricNetworking.Client.registerS2CPackets();
         WorldRenderEvents.LAST.register(context ->
-                WayNameplateRenderer.render(context.matrixStack(), context.consumers(), context.world(), context.tickDelta())
+                WayNameplateRenderer.render(context.matrixStack(), context.consumers(), context.world(),
+                        context.tickCounter().getGameTimeDeltaPartialTick(false))
         );
     }
 }

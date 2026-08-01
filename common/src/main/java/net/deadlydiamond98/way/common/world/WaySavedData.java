@@ -1,9 +1,26 @@
 package net.deadlydiamond98.way.common.world;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
 
 public class WaySavedData extends SavedData {
+
+    public static final String ID = "way_saved_data";
+
+    public static final SavedData.Factory<WaySavedData> FACTORY =
+            new SavedData.Factory<>(WaySavedData::new, WaySavedData::fromNbt, DataFixTypes.LEVEL);
+
+    public static WaySavedData get(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(FACTORY, ID);
+    }
+
+    public static WaySavedData get(MinecraftServer server) {
+        return get(server.overworld());
+    }
 
     // Data Saved to overworld for variables that are global
 
@@ -17,7 +34,6 @@ public class WaySavedData extends SavedData {
     private boolean namePainGetRedder = false;
 
     // DISTANCE
-
     private int minRender = 0;
     private int maxRender = 999999;
 
@@ -28,7 +44,7 @@ public class WaySavedData extends SavedData {
     private int packetUpdateRate = 5;
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider registries) {
         nbt.putBoolean("lockColorWay", this.lockColor);
         nbt.putBoolean("lockSeeWay", this.lockSee);
 
@@ -45,7 +61,7 @@ public class WaySavedData extends SavedData {
         return nbt;
     }
 
-    public static WaySavedData fromNbt(CompoundTag nbt) {
+    public static WaySavedData fromNbt(CompoundTag nbt, HolderLookup.Provider registries) {
         WaySavedData data = new WaySavedData();
 
         data.lockColor = nbt.getBoolean("lockColorWay");

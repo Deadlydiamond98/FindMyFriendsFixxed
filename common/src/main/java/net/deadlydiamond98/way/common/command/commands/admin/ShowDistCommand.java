@@ -7,10 +7,8 @@ import net.deadlydiamond98.way.util.mixin.IWayPlayer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 
 import java.util.Collection;
 
@@ -27,7 +25,7 @@ public class ShowDistCommand extends AbstractWayCommand {
 
     public int getValue(Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            return getter.get(getWayData(serverPlayer.getServer().overworld()));
+            return getter.get(WaySavedData.get(serverPlayer.getServer()));
         }
         return 4;
     }
@@ -35,10 +33,8 @@ public class ShowDistCommand extends AbstractWayCommand {
     @Override
     protected void execute(CommandContext<CommandSourceStack> context, Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            setter.set(
-                    getWayData(serverPlayer.getServer().overworld()),
-                    getter.get(getWayData(serverPlayer.getServer().overworld()))
-            );
+            WaySavedData data = WaySavedData.get(serverPlayer.getServer());
+            setter.set(data, getter.get(data));
             if (serverPlayer instanceof IWayPlayer) {
                 player.getCommandSenderWorld().players().forEach(player1 -> ((IWayPlayer) player1).way$updateRenderPreferences());
             }
@@ -55,15 +51,10 @@ public class ShowDistCommand extends AbstractWayCommand {
         return false;
     }
 
-    public static WaySavedData getWayData(ServerLevel world) {
-        DimensionDataStorage manager = world.getDataStorage();
-        return manager.computeIfAbsent(WaySavedData::fromNbt, WaySavedData::new, "way_saved_data");
-    }
-
     @Override
     protected void successMSG(CommandContext<CommandSourceStack> context, Collection<? extends Player> players) {
         if (players.iterator().next() instanceof ServerPlayer player) {
-            int currentDist = getter.get(getWayData(player.getServer().overworld()));
+            int currentDist = getter.get(WaySavedData.get(player.getServer()));
             MutableComponent base = Component.translatable(LANG_PREFIX + getID(context, players.iterator().next()), currentDist);
             sendSuccess(context, base, players.iterator().next());
         }
@@ -74,10 +65,13 @@ public class ShowDistCommand extends AbstractWayCommand {
         return super.getID(context, player) + ".show";
     }
 
-    @FunctionalInterface public interface getPersistantState {
+    @FunctionalInterface
+    public interface getPersistantState {
         int get(WaySavedData data);
     }
-    @FunctionalInterface public interface setPersistantState {
+
+    @FunctionalInterface
+    public interface setPersistantState {
         void set(WaySavedData data, int bool);
     }
 }

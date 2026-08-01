@@ -5,7 +5,6 @@ import net.deadlydiamond98.way.client.WayKeybindings;
 import net.deadlydiamond98.way.common.events.WayTickingEvent;
 import net.deadlydiamond98.way.util.PlayerLocation;
 import net.deadlydiamond98.way.util.mixin.IGlowingWayPlayer;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,15 +14,17 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(Entity.class)
 public abstract class EntityMixin implements IGlowingWayPlayer {
 
-    private boolean render = false;
-    private int color = 0xFFFFFFFF;
+    @Unique
+    private boolean way$render = false;
+    @Unique
+    private int way$color = 0xFFFFFFFF;
 
     @ModifyReturnValue(method = "getTeamColor", at = @At("RETURN"))
     private int way$getTeamColor(int original) {
         Entity entity = (Entity) (Object) this;
         if (entity.level().isClientSide) {
-            if (WayKeybindings.renderNameOverlay() && way$canSeePlayer(entity) && this.render) {
-                return this.color;
+            if (WayKeybindings.renderNameOverlay() && way$canSeePlayer(entity) && this.way$render) {
+                return this.way$color;
             }
         }
         return original;
@@ -33,7 +34,7 @@ public abstract class EntityMixin implements IGlowingWayPlayer {
     private boolean way$isCurrentlyGlowing(boolean original) {
         Entity entity = (Entity) (Object) this;
         if (entity.level().isClientSide) {
-            if (WayKeybindings.renderNameOverlay() && way$canSeePlayer(entity) && this.render) {
+            if (WayKeybindings.renderNameOverlay() && way$canSeePlayer(entity) && this.way$render) {
                 return true;
             }
         }
@@ -54,21 +55,21 @@ public abstract class EntityMixin implements IGlowingWayPlayer {
 
     @Override
     public void way$setGlowRendering(boolean bl) {
-        this.render = bl;
+        this.way$render = bl;
     }
 
     @Override
     public boolean way$isGlowRendering() {
-        return this.render;
+        return this.way$render;
     }
 
     @Override
     public void way$setOutlineColor(int color) {
-        this.color = color;
+        this.way$color = color;
     }
 
     @Override
     public int way$getOutlineColor() {
-        return this.color;
+        return this.way$color;
     }
 }

@@ -6,7 +6,7 @@ import java.util.ServiceLoader;
 
 public class Service {
 
-    public static final PlatformHelper PLATFORM = load(PlatformHelper.class);
+    public static final IPlatformHelper PLATFORM = load(IPlatformHelper.class);
 
     public static <T> T load(Class<T> clazz) {
         final T loadedService = ServiceLoader.load(clazz)
